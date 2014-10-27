@@ -9,6 +9,8 @@ import akka.pattern.ask
 import akka.util.Timeout
 
 import scala.concurrent.duration.{Duration, SECONDS}
+import actors.ActorManager
+import play.libs.Akka
 
 
 object StockSentiment extends Controller {
@@ -18,7 +20,7 @@ object StockSentiment extends Controller {
 
     def get(symbol: String): Action[AnyContent] = Action.async {
 
-        (SentimentActor.sentimentActor ? SentimentActor.GetSentiment(symbol)).mapTo[JsObject].map {
+        (ActorManager(Akka.system()).sentimentActor ? SentimentActor.GetSentiment(symbol)).mapTo[JsObject].map {
             sentimentJson => {
                 println(s"returning sentimentJson: $sentimentJson")
                 Ok(sentimentJson)
