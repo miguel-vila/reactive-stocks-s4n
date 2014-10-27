@@ -16,7 +16,7 @@ import scala.collection.JavaConverters._
   * */
 class UserActor(out: ActorRef) extends Actor with ActorLogging with ActorManagerActor {
 
-    val stockManagerActor = actorManager.stockManagerActor
+    val stockManagerActor = actorManager.stockManager
 
     // watch the default stocks
     val defaultStocks = Play.application.configuration.getStringList("default.stocks")

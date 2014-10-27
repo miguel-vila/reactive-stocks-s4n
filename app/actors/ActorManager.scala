@@ -15,7 +15,6 @@ class ActorManager(system: ExtendedActorSystem) extends Extension {
     val path = RootActorPath(address) / "user" / "stockManager"
     val stockManager = system.actorSelection(path)
 
-    val stockManagerActor = system.actorOf(StockManagerActor.props)
     val sentimentActor = system.actorOf(SentimentActor.props)
 }
 
