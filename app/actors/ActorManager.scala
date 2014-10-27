@@ -11,8 +11,8 @@ object ActorManager extends ExtensionKey[ActorManager]
 
 class ActorManager(system: ExtendedActorSystem) extends Extension {
 
-    val stockManagerProxy = system.actorOf(StockManagerProxy.props)
-    val sentimentActor = system.actorOf(SentimentActor.props)
+  val stockManagerProxy = system.actorOf(StockManagerProxy.props)
+  val sentimentActor = system.actorOf(SentimentActor.props)
 }
 
 trait ActorManagerActor {
