@@ -3,9 +3,6 @@ package controllers
 import scala.concurrent.ExecutionContext.Implicits.global
 import play.api.mvc._
 import play.api.libs.json._
-import actors.ActorManager
-import play.libs.Akka
-import akka.actor.ActorRef
 import backend.SentimentActor
 
 import akka.pattern.ask
@@ -26,13 +23,9 @@ object StockSentiment extends Controller {
                 println(s"returning sentimentJson: $sentimentJson")
                 Ok(sentimentJson)
             }
-        }
-
-        /* need to add proper error handling
-            futureStockSentiments.recover {
+        }.recover {
                 case nsee: NoSuchElementException =>
                     InternalServerError(Json.obj("error" -> JsString("Could not fetch the tweets")))
-            }
-        */
+        }
     }
 }
