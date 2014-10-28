@@ -1,10 +1,13 @@
 package actors
 
-import akka.actor.{ActorRef, Props, Actor}
+import akka.actor.{ActorLogging, ActorRef, Props, Actor}
 import actors.StockManagerActor._
 import play.libs.Akka
 
-class StockManagerActor extends Actor {
+class StockManagerActor extends Actor with ActorLogging {
+
+    log.info(s"### StockManagerActor created on ${self.path}")
+
     def receive = {
         case watchStock @ WatchStock(symbol) =>
             // get or create the StockActor for the symbol and forward this message

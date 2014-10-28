@@ -1,7 +1,6 @@
 package actors
 
 import akka.actor._
-import scala.concurrent.duration.{MILLISECONDS => Millis}
 
 import backend.SentimentActor
 import akka.routing.FromConfig
@@ -12,11 +11,15 @@ object ActorManager extends ExtensionKey[ActorManager]
 
 class ActorManager(system: ExtendedActorSystem) extends Extension {
 
-  // val stockManagerProxy = system.actorOf(StockManagerProxy.props)
-  val stockManagerProxy = system.actorOf(
-    ClusterSingletonProxy.props("/user/singleton/my-actor",Some("my-role")),
-    "my-actor-proxy")
-  val sentimentActor = system.actorOf(FromConfig.props(SentimentActor.props),"sentimentRouter")
+    // val stockManagerProxy = system.actorOf(StockManagerProxy.props)
+    val stockManagerProxy = system.actorOf(
+        ClusterSingletonProxy.props("/user/singleton/stockManger", Some("backend")),
+        "stockManagerProxy")
+
+    val sentimentActor = system.actorOf(FromConfig.props(SentimentActor.props), "sentimentRouter")
+
+    system.actorOf(SharedJournalSetter.props, "shared-journal-setter")
+
 }
 
 trait ActorManagerActor {
