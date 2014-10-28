@@ -17,6 +17,7 @@ class SentimentActor extends Actor with ActorLogging {
 
     override def receive: Receive = {
         case SentimentActor.GetSentiment(symbol) => {
+            log.info(s"#GET SENTIMENT ${self.path} $symbol")
             val origSender = sender()
             val futureStockSentiments: Future[JsObject] = for {
                 tweets <- getTweets(symbol) // get tweets that contain the stock symbol
