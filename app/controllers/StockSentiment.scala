@@ -16,7 +16,7 @@ import play.libs.Akka
 object StockSentiment extends Controller {
 
 
-    implicit val sentimentAskTimeout: Timeout = Duration(10, SECONDS)
+    implicit val sentimentAskTimeout: Timeout = Duration(20, SECONDS)
 
     def get(symbol: String): Action[AnyContent] = Action.async {
 

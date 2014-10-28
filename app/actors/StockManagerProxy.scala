@@ -11,34 +11,23 @@ import actors.StockManagerActor.{UnwatchStock, WatchStock}
 class StockManagerProxy extends Actor with ActorLogging  with Stash {
 
     Cluster(context.system).subscribe(self, classOf[MemberUp])
-    var optStockManager = Option.empty[ActorSelection]
 
     def watchForStockManager: Receive = {
         case MemberUp(member) if member.hasRole("backend") => {
             val path = RootActorPath(member.address) / "user" / "stockManager"
             val stockManager = context actorSelection path
-            optStockManager = Some(stockManager)
             unstashAll()
-            context.become(ready)
+            context.become(ready(stockManager))
         }
-        case _ => {
-            log.info(s"waiting for member up")
-            stash()
-        }
+        case _ => stash()
     }
 
     override def receive: Receive =
         watchForStockManager
 
-    def ready: Receive = {
-        case watchStock:WatchStock => optStockManager match {
-            case Some(stockManager) => stockManager forward watchStock
-            case None => log.error("in ready state but stockManager was not set")
-        }
-        case unwatchStock:UnwatchStock => optStockManager match {
-            case Some(stockManager) => stockManager forward unwatchStock
-            case None => log.error("in ready state but stockManager was not set")
-        }
+    def ready(stockManager:ActorSelection): Receive = {
+        case watchStock:WatchStock =>  stockManager forward watchStock
+        case unwatchStock:UnwatchStock => stockManager forward unwatchStock
     }
 }
 

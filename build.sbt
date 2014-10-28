@@ -24,4 +24,6 @@ libraryDependencies ++= Seq(
 
 addCommandAlias("rb", "runMain backend.MainClusterManager -Dakka.remote.netty.tcp.port=2555 -Dakka.cluster.roles.0=backend")
 
+addCommandAlias("rb2", "runMain backend.MainClusterManager -Dakka.remote.netty.tcp.port=2556 -Dakka.cluster.roles.0=backend")
+
 addCommandAlias("sj", "runMain backend.journal.SharedJournalApp -Dakka.remote.netty.tcp.port=2560 -Dakka.cluster.roles.0=shared-journal")
