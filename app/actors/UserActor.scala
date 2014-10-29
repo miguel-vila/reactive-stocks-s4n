@@ -6,7 +6,7 @@ import play.Play
 import play.api.libs.json.JsObject
 import play.api.libs.json.JsString
 import play.api.libs.json.JsNumber
-import actors.StockManagerActor.StockHistory
+// import actors.StockManagerActor.StockHistory
 
 import scala.collection.JavaConverters._
 
@@ -16,46 +16,48 @@ import scala.collection.JavaConverters._
   * */
 class UserActor(out: ActorRef) extends Actor with ActorLogging with ActorManagerActor {
 
-    val stockManagerProxy = actorManager.stockManagerProxy
+  import StockProtocol._
+
+  val stockManagerProxy = actorManager.stockManagerProxy
 
     // watch the default stocks
-    val defaultStocks = Play.application.configuration.getStringList("default.stocks")
-    for (stockSymbol <- defaultStocks.asScala) {
-        stockManagerProxy ! StockManagerActor.WatchStock(stockSymbol)
-    }
+  val defaultStocks = Play.application.configuration.getStringList("default.stocks")
+  for (stockSymbol <- defaultStocks.asScala) {
+    stockManagerProxy ! WatchStock(stockSymbol)
+  }
 
-    def receive = {
-        //Handle the FetchTweets message to periodically fetch tweets if there is a query available.
-        case StockManagerActor.StockUpdate(symbol, price) =>
-            val stockUpdateJson: JsObject = JsObject(Seq(
-                "type" -> JsString("stockupdate"),
-                "symbol" -> JsString(symbol),
-                "price" -> JsNumber(price.doubleValue())
-            ))
-            out ! stockUpdateJson
+  def receive = {
+    //Handle the FetchTweets message to periodically fetch tweets if there is a query available.
+    case StockUpdate(symbol, price) =>
+      val stockUpdateJson: JsObject = JsObject(Seq(
+        "type" -> JsString("stockupdate"),
+        "symbol" -> JsString(symbol),
+        "price" -> JsNumber(price.doubleValue())
+      ))
+      out ! stockUpdateJson
 
-        case StockHistory(symbol, history) =>
-            val jsonHistList = JsArray(history.map(price => JsNumber(price)))
-            val stockHistoryJson: JsObject = JsObject(Seq(
-                "type" -> JsString("stockhistory"),
-                "symbol" -> JsString(symbol),
-                "history" -> jsonHistList
-            ))
-            out ! stockHistoryJson
+    case StockHistory(symbol, history) =>
+      val jsonHistList = JsArray(history.map(price => JsNumber(price)))
+      val stockHistoryJson: JsObject = JsObject(Seq(
+        "type" -> JsString("stockhistory"),
+        "symbol" -> JsString(symbol),
+        "history" -> jsonHistList
+      ))
+      out ! stockHistoryJson
 
-        case message: JsValue =>
-            (message \ "symbol").asOpt[String] match {
-                case Some(symbol) =>
-                    stockManagerProxy ! StockManagerActor.WatchStock(symbol)
-                case None => log.error("symbol was not found in json: $message")
-            }
-    }
+    case message: JsValue =>
+      (message \ "symbol").asOpt[String] match {
+        case Some(symbol) =>
+          stockManagerProxy ! WatchStock(symbol)
+        case None => log.error("symbol was not found in json: $message")
+      }
+  }
 
-    override def postStop() {
-        stockManagerProxy ! StockManagerActor.UnwatchStock(None)
-    }
+  override def postStop() {
+    stockManagerProxy ! UnwatchStock("None")
+  }
 }
 
 object UserActor {
-    def props(out: ActorRef) = Props(new UserActor(out))
+  def props(out: ActorRef) = Props(new UserActor(out))
 }
