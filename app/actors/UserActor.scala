@@ -1,14 +1,13 @@
 package actors
 
-import actors.AverageStockProtocol.{ListenStock, StockAverage}
-import akka.actor.{ActorLogging, Actor, ActorRef, Props}
+import actors.AverageStockProtocol.{ComputeAverageStock, ListenStock, StockAverage}
+import akka.actor._
 import akka.util.Timeout
 import play.api.libs.json._
 import play.Play
 import play.api.libs.json.JsObject
 import play.api.libs.json.JsString
 import play.api.libs.json.JsNumber
-// import actors.StockManagerActor.StockHistory
 import akka.pattern.ask
 import akka.pattern.pipe
 import scala.collection.JavaConverters._
@@ -23,7 +22,7 @@ class UserActor(out: ActorRef) extends Actor with ActorLogging with ActorManager
   import StockProtocol._
 
   val stockManagerActor = actorManager.stockManagerActor
-  val averageStockActor = context.system.actorOf( AverageStockActor.props(self) )
+  val averageStockActor = context.system.actorOf( AverageStockActor.props() )
   implicit val askTimeout = Timeout(5 seconds)
 
     // watch the default stocks
@@ -37,6 +36,8 @@ class UserActor(out: ActorRef) extends Actor with ActorLogging with ActorManager
   futureStockRef pipeTo averageStockActor
 }
    */
+
+  var stockAvgTick: Option[Cancellable] = _
 
   def receive = {
     //Handle the FetchTweets message to periodically fetch tweets if there is a query available.
@@ -72,8 +73,10 @@ class UserActor(out: ActorRef) extends Actor with ActorLogging with ActorManager
         case None => log.error("symbol was not found in json: $message")
       }
       (message \ "message").asOpt[String] match {
-        case Some("GET_AVG_STOCK") => 
-          println("RECEIVED GET_AVG_STOCK!!!")
+        case Some("GET_AVG_STOCK") =>
+          if(!stockAvgTick.isDefined) {
+            stockAvgTick = Some(context.system.scheduler.schedule(Duration.Zero, 500 millis, averageStockActor, ComputeAverageStock))
+          }
         case None => log.error("message was not found in json: $message")
       }
       

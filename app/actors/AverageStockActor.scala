@@ -13,29 +13,25 @@ import scala.concurrent.duration._
 /**
  * Created by miguel on 26/11/14.
  */
-class AverageStockActor(defaultWatcher: ActorRef) extends Actor with ActorLogging with ActorManagerActor {
+class AverageStockActor extends Actor with ActorLogging with ActorManagerActor {
 
   import context._
 
   val stockManagerActor = actorManager.stockManagerActor
-  protected[this] var watchers: HashSet[ActorRef] = HashSet.empty[ActorRef]
-  watchers += defaultWatcher
   protected[this] var stockActors: HashSet[ActorRef] = HashSet.empty[ActorRef]
 
-  val stockAvgTick = context.system.scheduler.schedule(5 seconds, 2 seconds, self, ComputeAverageStock)
   implicit val timeout = Timeout(5 seconds)
 
   def receive: Receive = {
     case StockActorRef(stockActorRef) =>
       stockActors += stockActorRef
-    case AddWatcherRef(watcher) =>
-      watchers += watcher
     case ComputeAverageStock =>
       if(stockActors.size>0) {
+        val originalSender = sender()
         val stockUpdatesFutures = stockActors.toList.map(stockActor => (stockActor ? FetchLatestAndAnswerToSender).mapTo[StockUpdate])
         val futureStockUpdates = Future.sequence(stockUpdatesFutures)
         val futureAverage = futureStockUpdates.map( stockUpdates => average(stockUpdates) )
-        watchers.foreach( watcher => futureAverage pipeTo watcher )
+        futureAverage pipeTo originalSender
       }
   }
 
@@ -47,5 +43,5 @@ class AverageStockActor(defaultWatcher: ActorRef) extends Actor with ActorLoggin
 }
 
 object AverageStockActor {
-  def props(defaultWatcher: ActorRef) = Props(new AverageStockActor(defaultWatcher))
+  def props() = Props(new AverageStockActor())
 }
