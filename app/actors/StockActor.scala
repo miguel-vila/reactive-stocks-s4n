@@ -14,7 +14,6 @@ import akka.actor.Identify
 import akka.actor.ActorIdentity
 import akka.actor.Identify
 import akka.pattern.ask
-import akka.persistence.{SnapshotOffer, PersistentActor}
 import akka.util.Timeout
 
 /**
@@ -45,6 +44,9 @@ class StockActor(symbol: String) extends Actor with ActorLogging {
   val stockTick = context.system.scheduler.schedule(Duration.Zero, 75.millis, self, FetchLatest)
 
   override def receive: Receive = {
+    case FetchLatestAndAnswerToSender =>
+      val lastPrice = stockHistory.last.doubleValue()
+      sender() ! StockUpdate(symbol, lastPrice)
     case FetchLatest =>
       // add a new stock price to the history and drop the oldest
       val newPrice = FakeStockQuote.newPrice(stockHistory.last.doubleValue())

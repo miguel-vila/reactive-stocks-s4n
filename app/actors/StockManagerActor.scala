@@ -10,13 +10,22 @@ class StockManagerActor extends Actor with ActorLogging {
 
   log.info(s"### StockManagerActor created on ${self.path}")
 
+  def getOrCreateStockActor(symbol: String): ActorRef = {
+    context.child(symbol).getOrElse {
+      context.actorOf(StockActor.props(symbol), symbol)
+    }
+  }
+
   def receive = {
     case watchStock @ WatchStock(symbol) =>
-      context.child(symbol).getOrElse {
-        context.actorOf(StockActor.props(symbol), symbol)
-      } forward watchStock
+      val stockActor = getOrCreateStockActor(symbol)
+      stockActor forward watchStock
+      sender ! StockActorRef(stockActor)
     case unwatchStock @ UnwatchStock(symbol) =>
       context.child(symbol).foreach(_.forward(unwatchStock))
+    case GetStockActorRef(symbol) =>
+      val stockActorRef = getOrCreateStockActor(symbol)
+      sender() ! StockActorRef(stockActorRef)
   }
 }
 

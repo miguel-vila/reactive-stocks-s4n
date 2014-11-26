@@ -7,7 +7,11 @@ $ ->
         populateStockHistory(message)
       when "stockupdate"
         updateStockChart(message)
+      when "stockaverage"        
+        console.log("Stock Average!!")
+        console.log(message)
       else
+        console.log("NOT HANDLED:")
         console.log(message)
 
   $("#addsymbolform").submit (event) ->
