@@ -14,12 +14,4 @@ object StockProtocol {
   case class StockHistory(symbol: String, history: List[Double]) extends Cmd
   case class FetchLatest(symbol: String) extends Cmd
   case class Snap(symbol: String) extends Cmd
-
-  // Events
-  sealed trait Evt
-  case class EventStockPriceUpdated(price: Double) extends Evt
-  case class EventWatcherAdded(watcher: ActorRef) extends Evt
-  case class EventWatcherRemover(watcher: ActorRef) extends Evt
-
-
 }

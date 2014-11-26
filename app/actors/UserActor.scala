@@ -18,12 +18,12 @@ class UserActor(out: ActorRef) extends Actor with ActorLogging with ActorManager
 
   import StockProtocol._
 
-  val stockManagerProxy = actorManager.stockManagerProxy
+  val stockManagerActor = actorManager.stockManagerActor
 
     // watch the default stocks
   val defaultStocks = Play.application.configuration.getStringList("default.stocks")
   for (stockSymbol <- defaultStocks.asScala) {
-    stockManagerProxy ! WatchStock(stockSymbol)
+    stockManagerActor ! WatchStock(stockSymbol)
   }
 
   def receive = {
@@ -48,13 +48,13 @@ class UserActor(out: ActorRef) extends Actor with ActorLogging with ActorManager
     case message: JsValue =>
       (message \ "symbol").asOpt[String] match {
         case Some(symbol) =>
-          stockManagerProxy ! WatchStock(symbol)
+          stockManagerActor ! WatchStock(symbol)
         case None => log.error("symbol was not found in json: $message")
       }
   }
 
   override def postStop() {
-    stockManagerProxy ! UnwatchStock("None")
+    stockManagerActor ! UnwatchStock("None")
   }
 }
 
