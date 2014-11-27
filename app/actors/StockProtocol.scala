@@ -10,7 +10,6 @@ object StockProtocol {
   case class StockHistory(symbol: String, history: List[Double])
   case class FetchLatest(symbol: String)
   case object FetchLatestAndAnswerToSender
-  case class GetStockActorRef(symbol: String)
   case class StockActorRef(actorRef: ActorRef)
 
 }
