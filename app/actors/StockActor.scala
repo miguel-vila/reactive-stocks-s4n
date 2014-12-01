@@ -26,8 +26,6 @@ class StockActor(symbol: String) extends Actor with ActorLogging {
   import StockProtocol._
   import StockActor._
 
-  implicit val identifyAskTimeout: Timeout = Duration(10, SECONDS)
-
   log.info(s"### StockActor creating StockActor for $symbol")
 
   protected[this] var watchers: HashSet[ActorRef] = HashSet.empty[ActorRef]

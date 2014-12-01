@@ -37,7 +37,7 @@ class UserActor(out: ActorRef) extends Actor with ActorLogging with ActorManager
 }
    */
 
-  var stockAvgTick: Option[Cancellable] = _
+  var stockAvgTick: Option[Cancellable] = None
 
   def receive = {
     //Handle the FetchTweets message to periodically fetch tweets if there is a query available.
