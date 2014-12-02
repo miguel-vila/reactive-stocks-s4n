@@ -1,15 +1,13 @@
 package actors
 
-import actors.AverageStockProtocol.{ComputeAverageStock, ListenStock, StockAverage}
 import akka.actor._
 import akka.util.Timeout
+import model.StockAverage
 import play.api.libs.json._
 import play.Play
 import play.api.libs.json.JsObject
 import play.api.libs.json.JsString
 import play.api.libs.json.JsNumber
-import akka.pattern.ask
-import akka.pattern.pipe
 import scala.collection.JavaConverters._
 import scala.concurrent.duration._
 
@@ -22,7 +20,6 @@ class UserActor(out: ActorRef) extends Actor with ActorLogging with ActorManager
   import StockProtocol._
 
   val stockManagerActor = actorManager.stockManagerActor
-  val averageStockActor = context.system.actorOf( AverageStockActor.props() )
   implicit val askTimeout = Timeout(5 seconds)
 
     // watch the default stocks
@@ -30,12 +27,6 @@ class UserActor(out: ActorRef) extends Actor with ActorLogging with ActorManager
   for (stockSymbol <- defaultStocks.asScala) {
     stockManagerActor ! WatchStock(stockSymbol)
   }
-  /* @TODO: Reemplazando lo anterior con lo siguiente deja de funcionar
-  for (stockSymbol <- defaultStocks.asScala) {
-  val futureStockRef = (stockManagerActor ? WatchStock(stockSymbol)).mapTo[StockActorRef]
-  futureStockRef pipeTo averageStockActor
-}
-   */
 
   var stockAvgTick: Option[Cancellable] = None
 
@@ -58,7 +49,7 @@ class UserActor(out: ActorRef) extends Actor with ActorLogging with ActorManager
       ))
       out ! stockHistoryJson
 
-    case StockAverage(average) =>
+    case StockAverage(_,average) =>
       val stockAverageJson = JsObject(Seq(
         "type" -> JsString("stockaverage"),
         "average" -> JsNumber(average)
@@ -68,18 +59,9 @@ class UserActor(out: ActorRef) extends Actor with ActorLogging with ActorManager
     case message: JsValue =>
       (message \ "symbol").asOpt[String] match {
         case Some(symbol) =>
-          val futureStockRef = (stockManagerActor ? WatchStock(symbol)).mapTo[StockActorRef]
-          futureStockRef pipeTo averageStockActor
+          stockManagerActor ! WatchStock(symbol)
         case None => log.error("symbol was not found in json: $message")
       }
-      (message \ "message").asOpt[String] match {
-        case Some("GET_AVG_STOCK") =>
-          if(!stockAvgTick.isDefined) {
-            stockAvgTick = Some(context.system.scheduler.schedule(Duration.Zero, 500 millis, averageStockActor, ComputeAverageStock))
-          }
-        case None => log.error("message was not found in json: $message")
-      }
-      
   }
 
   override def postStop() {

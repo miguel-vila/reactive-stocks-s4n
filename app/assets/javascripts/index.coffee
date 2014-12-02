@@ -23,7 +23,14 @@ $ ->
 
   $("#averagestockform").submit (event) ->
     event.preventDefault()
-    ws.send(JSON.stringify({message: "GET_AVG_STOCK"}))
+    $.ajax
+      method: 'GET'
+      url: '/stocks/average'
+      success: (data) ->
+        window.alert(formatStocksAverage(data))
+
+formatStocksAverage = (averages) ->
+  JSON.stringify(averages)
 
 getPricesFromArray = (data) ->
   (v[1] for v in data)
