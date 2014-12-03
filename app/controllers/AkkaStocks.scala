@@ -5,6 +5,7 @@ import play.api.mvc.{AnyContent, WebSocket, Action, Controller}
 import actors.UserActor
 import play.api.libs.json._
 import play.api.Play.current
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 /**
  * Controlador de Play para manejar Stocks
@@ -33,9 +34,9 @@ object AkkaStocks extends Controller {
   /**
    * Devuelve el promedio de stocks
    */
-  def averageStocks(): Action[AnyContent] = Action { req =>
-    val averages = StockManagerMock.getStocksAverage()
-    Ok(Json.toJson(averages))
+  def averageStocks(): Action[AnyContent] = Action.async { req =>
+    val averagesFuture = StockManagerMock.getStocksAverage()
+    averagesFuture.map(averages => Ok(Json.toJson(averages)))
   }
 
 }
