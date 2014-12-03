@@ -30,7 +30,10 @@ $ ->
         window.alert(formatStocksAverage(data))
 
 formatStocksAverage = (averages) ->
-  JSON.stringify(averages)
+  s = ""
+  averages.forEach (avg) ->
+    s+="Stock: "+avg.symbol + " --- Average: " + Math.round(avg.average) + '\n'
+  return s
 
 getPricesFromArray = (data) ->
   (v[1] for v in data)
