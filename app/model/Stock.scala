@@ -10,6 +10,7 @@ case class Stock(symbol: String) {
    * Retorna el valor promedio de este Stock
    */
   def getAverageStock(): StockAverage = {
-    ???
+    Thread.sleep(1000)
+    StockAverage(symbol, rand.nextDouble()*800)
   }
 }

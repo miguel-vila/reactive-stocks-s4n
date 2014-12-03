@@ -34,7 +34,8 @@ object AkkaStocks extends Controller {
    * Devuelve el promedio de stocks
    */
   def averageStocks(): Action[AnyContent] = Action { req =>
-    ???
+    val averages = StockManagerMock.getStocksAverage()
+    Ok(Json.toJson(averages))
   }
 
 }
