@@ -1,5 +1,6 @@
 package actors
 
+import model.StockAverage
 import utils.FakeStockQuote
 import scala.collection.immutable.{HashSet, Queue}
 import scala.concurrent.duration._
@@ -42,9 +43,6 @@ class StockActor(symbol: String) extends Actor with ActorLogging {
   val stockTick = context.system.scheduler.schedule(Duration.Zero, 75.millis, self, FetchLatest)
 
   override def receive: Receive = {
-    case FetchLatestAndAnswerToSender =>
-      val lastPrice = stockHistory.last.doubleValue()
-      sender() ! StockUpdate(symbol, lastPrice)
     case FetchLatest =>
       // add a new stock price to the history and drop the oldest
       val newPrice = FakeStockQuote.newPrice(stockHistory.last.doubleValue())
@@ -65,7 +63,16 @@ class StockActor(symbol: String) extends Actor with ActorLogging {
         stockTick.cancel()
         context.stop(self)
       }
+    case GetStockAverage =>
+      val stockAverage = StockAverage(symbol, getAverageStockValue())
+      sender() ! stockAverage
   }
+
+  def getAverageStockValue(): Double = {
+    val sum = stockHistory.foldLeft(0.0)((stockValue, acc) => stockValue + acc)
+    sum / stockHistory.size
+  }
+
 }
 
 object StockActor {

@@ -21,6 +21,8 @@ class StockManagerActor extends Actor with ActorLogging {
       getOrCreateStockActor(symbol) forward watchStock
     case unwatchStock @ UnwatchStock(symbol) =>
       context.child(symbol).foreach(_.forward(unwatchStock))
+    case GetStockActorRefs =>
+      sender() ! context.children
   }
 }
 
