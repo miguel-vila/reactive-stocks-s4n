@@ -1,12 +1,12 @@
 package controllers
 
-import actors.StockProtocol.GetStockAverage
+import actors.StockProtocol.{GetStockActorRefs, GetStockAverage}
+import actors.{ActorManager, UserActor}
 import akka.actor.ActorRef
 import akka.util.Timeout
 import akka.pattern.ask
 import model.StockAverage
 import play.api.mvc.{AnyContent, WebSocket, Action, Controller}
-import actors.{AverageManagerActor, UserActor}
 import play.api.libs.json._
 import play.api.Play.current
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -24,7 +24,8 @@ object AkkaStocks extends Controller {
    */
   implicit val stockAverageFormat = Json.format[StockAverage]
 
-  val avgStockActor: ActorRef = Akka.system.actorOf( AverageManagerActor.props )
+  val stockManagerActor = ActorManager.stockManagerActor
+
   implicit val timeout = Timeout( 5 seconds )
 
   /**
@@ -45,7 +46,11 @@ object AkkaStocks extends Controller {
    * Devuelve el promedio de stocks
    */
   def averageStocks(): Action[AnyContent] = Action.async { req =>
-    val stockAvgsFuture: Future[Iterable[StockAverage]] = (avgStockActor ? GetStockAverage).mapTo[Iterable[StockAverage]]
+    val stockActorsFuture: Future[Iterable[ActorRef]] = (stockManagerActor ? GetStockActorRefs).mapTo[Iterable[ActorRef]]
+    val stockAvgsFuture: Future[Iterable[StockAverage]] = stockActorsFuture.flatMap { stockActorsRefs =>
+      val stocksFuture = stockActorsRefs.map { actorRef => (actorRef ? GetStockAverage).mapTo[StockAverage] }
+      Future.sequence(stocksFuture)
+    }
     stockAvgsFuture.map(averages => Ok(Json.toJson(averages)))
   }
 
