@@ -15,11 +15,11 @@ import scala.concurrent.duration._
   * When a message is sent to out the Play Framework then sends it to the client WebSocket.
   *
   * */
-class UserActor(out: ActorRef) extends Actor with ActorLogging with ActorManagerActor {
+class UserActor(out: ActorRef) extends Actor with ActorLogging {
   import context._
   import StockProtocol._
 
-  val stockManagerActor = actorManager.stockManagerActor
+  val stockManagerActor = ActorManager.stockManagerActor
   implicit val askTimeout = Timeout(5 seconds)
 
     // watch the default stocks
